@@ -24,7 +24,7 @@ const Sidebar = {
                 <div class="sidebar-header">
                     <div class="logo">
                         <i class="fa-solid fa-leaf text-primary"></i>
-                        <h2>MyFinance</h2>
+                        <h2>MoneTrac</h2>
                     </div>
                     <button class="close-sidebar" id="closeSidebarBtn">
                         <i class="fa-solid fa-xmark"></i>
@@ -34,7 +34,7 @@ const Sidebar = {
                     ${menuHtml}
                 </nav>
                 <div class="sidebar-footer">
-                    <p class="text-muted" style="font-size: 0.8rem; text-align: center;">© 2026 MyFinance</p>
+                    <p class="text-muted" style="font-size: 0.8rem; text-align: center;">© 2026 MoneTrac</p>
                 </div>
             </aside>
         `;

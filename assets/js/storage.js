@@ -1,6 +1,5 @@
-/* assets/js/storage.js */
 const StorageDB = {
-    // ⚠️ GANTI STRING DI BAWAH DENGAN WEB APP URL DARI GOOGLE APPS SCRIPT-MU!
+    // URL Google Sheets kamu (Sudah Benar)
     API_URL: 'https://script.google.com/macros/s/AKfycbyFv22RXT2CjnlcqqrSKYiA_Gprpn_4IAL7ynxk9vNJuWWuP87OXxXwtrDbh9z3XdY/exec',
 
     keys: {
@@ -31,13 +30,11 @@ const StorageDB = {
         StorageDB.pushToCloud();
     },
 
-    // --- BAGIAN BARU: LOGIK SINKRONISASI CLOUD ---
+    // --- LOGIK SINKRONISASI CLOUD ---
 
     pushToCloud: () => {
-        // Abaikan jika API_URL belum diisi
-        if (StorageDB.API_URL === 'ISI_DENGAN_URL_KAMU_DISINI') return;
+        // Blok "if" peringatan sudah dihapus agar tidak memblokir pengiriman!
 
-        // Kumpulkan semua data dari LocalStorage
         const payload = {
             action: 'save',
             data: {
@@ -52,12 +49,22 @@ const StorageDB = {
         // Kirim diam-diam di background (Non-blocking)
         fetch(StorageDB.API_URL, {
             method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8',
+            },
             body: JSON.stringify(payload)
-        }).catch(err => console.error('Gagal sync ke cloud:', err));
+        }).then(() => {
+            console.log('Data terkirim ke cloud!');
+            Utils.showToast('Backup ke Cloud berhasil ☁️', 'success');
+        }).catch(err => {
+            console.error('Gagal sync ke cloud:', err);
+            Utils.showToast('Gagal mengirim ke Cloud', 'danger');
+        });
     },
 
     pullFromCloud: async () => {
-        if (StorageDB.API_URL === 'ISI_DENGAN_URL_KAMU_DISINI') return false;
+        // Blok "if" peringatan sudah dihapus juga di sini
 
         try {
             const response = await fetch(StorageDB.API_URL);
@@ -75,8 +82,6 @@ const StorageDB = {
         }
         return false;
     },
-
-    // --- INISIALISASI (Diubah sedikit) ---
 
     // --- INISIALISASI ---
 

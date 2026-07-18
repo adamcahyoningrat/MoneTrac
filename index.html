@@ -1,0 +1,132 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - MyFinance</title>
+    
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* Specific Dashboard Layout Styles */
+        .sidebar { background: var(--surface); width: var(--sidebar-width); height: 100vh; position: fixed; border-right: 1px solid var(--border-color); display: flex; flex-direction: column; transition: transform var(--transition); }
+        .sidebar-header { padding: 1.5rem; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-color); }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .sidebar-nav { padding: 1rem 0; flex: 1; overflow-y: auto; }
+        .menu-item { display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1.5rem; color: var(--text-muted); text-decoration: none; transition: var(--transition); }
+        .menu-item:hover, .menu-item.active { background: var(--primary-light); color: var(--primary); border-right: 3px solid var(--primary); }
+        .close-sidebar { display: none; background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer; }
+        .top-navbar { height: 70px; padding: 0 2rem; background: var(--surface); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; backdrop-filter: var(--glass-blur); }
+        .nav-left, .nav-right { display: flex; align-items: center; gap: 1rem; }
+        .menu-toggle, .theme-toggle { background: none; border: none; font-size: 1.25rem; color: var(--text-muted); cursor: pointer; padding: 0.5rem; }
+        @media (max-width: 768px) { .menu-toggle { display: block; } .close-sidebar { display: block; } }
+        @media (min-width: 769px) { .menu-toggle { display: none; } }
+        
+        /* Dashboard Grid */
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .kpi-card { display: flex; align-items: center; gap: 1.5rem; }
+        .kpi-icon { width: 50px; height: 50px; border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+        .kpi-icon.primary { background: var(--primary-light); color: var(--primary); }
+        .kpi-icon.success { background: var(--success-light); color: var(--success); }
+        .kpi-icon.danger { background: var(--danger-light); color: var(--danger); }
+        .kpi-icon.warning { background: var(--warning-light); color: var(--warning); }
+        .kpi-details h3 { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+        .kpi-details p { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+        
+        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+        @media (max-width: 1024px) { .charts-grid { grid-template-columns: 1fr; } }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        
+        .header-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app-container">
+        <!-- Sidebar injected via JS -->
+        
+        <main class="main-content" id="main-content">
+            <!-- Navbar injected via JS -->
+            
+            <div class="content-area">
+                <div class="header-action">
+                    <div>
+                        <h3 class="text-muted">Welcome back!</h3>
+                        <p>Here is your financial overview for this month.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="window.location.href='transactions.html'">
+                        <i class="fa-solid fa-plus"></i> Add Transaction
+                    </button>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="card kpi-card">
+                        <div class="kpi-icon primary"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="kpi-details">
+                            <h3>Total Balance</h3>
+                            <p id="kpi-balance">$0.00</p>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-icon success"><i class="fa-solid fa-arrow-trend-up"></i></div>
+                        <div class="kpi-details">
+                            <h3>Monthly Income</h3>
+                            <p id="kpi-income">$0.00</p>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-icon danger"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                        <div class="kpi-details">
+                            <h3>Monthly Expense</h3>
+                            <p id="kpi-expense">$0.00</p>
+                        </div>
+                    </div>
+                    <div class="card kpi-card">
+                        <div class="kpi-icon warning"><i class="fa-solid fa-scale-balanced"></i></div>
+                        <div class="kpi-details">
+                            <h3>Cash Flow</h3>
+                            <p id="kpi-cashflow">$0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Income vs Expense</h3>
+                        <div class="chart-container">
+                            <canvas id="cashflowChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 style="margin-bottom: 1rem;">Expense by Category</h3>
+                        <div class="chart-container">
+                            <canvas id="expenseCategoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/components/sidebar.js"></script>
+    <script src="assets/components/navbar.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/dashboard.js"></script>
+</body>
+</html>

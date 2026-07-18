@@ -1,0 +1,207 @@
+<!-- transactions.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - MyFinance</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <style>
+        /* Specific UI Components (Tables & Modals) */
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .header-actions { display: flex; gap: 0.5rem; }
+        
+        .toolbar { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .search-box { position: relative; }
+        .search-box i { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .search-box input { padding-left: 2.5rem; }
+        
+        /* Table Styles */
+        .table-responsive { overflow-x: auto; background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border-color); box-shadow: var(--shadow-sm); }
+        .data-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .data-table th, .data-table td { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .data-table th { background: var(--surface-solid); font-weight: 600; color: var(--text-muted); cursor: pointer; user-select: none; }
+        .data-table th:hover { background: var(--bg-color); }
+        .data-table tbody tr:hover { background: var(--primary-light); }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        
+        .badge { padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 600; }
+        .badge.income { background: var(--success-light); color: var(--success); }
+        .badge.expense { background: var(--danger-light); color: var(--danger); }
+        .badge.transfer { background: var(--warning-light); color: var(--warning); }
+        
+        .action-btns { display: flex; gap: 0.5rem; }
+        .btn-icon { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; transition: var(--transition); }
+        .btn-icon:hover { color: var(--primary); }
+        .btn-icon.delete:hover { color: var(--danger); }
+        
+        /* Pagination */
+        .pagination { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: var(--surface-solid); border-top: 1px solid var(--border-color); }
+        .page-controls { display: flex; gap: 0.25rem; }
+        .page-btn { padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); background: var(--surface); color: var(--text-main); border-radius: var(--radius-md); cursor: pointer; transition: var(--transition); }
+        .page-btn.active, .page-btn:hover:not(:disabled) { background: var(--primary); color: white; border-color: var(--primary); }
+        .page-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Modal Styles */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: var(--transition); backdrop-filter: blur(4px); }
+        .modal.active { opacity: 1; pointer-events: all; }
+        .modal-content { background: var(--surface-solid); width: 100%; max-width: 600px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); transform: translateY(20px); transition: var(--transition); display: flex; flex-direction: column; max-height: 90vh; }
+        .modal.active .modal-content { transform: translateY(0); }
+        .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
+        .modal-footer { padding: 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .full-width { grid-column: span 2; }
+        
+        /* Print Styles */
+        @media print {
+            .sidebar, .top-navbar, .page-header button, .toolbar, .action-btns, .pagination, .modal { display: none !important; }
+            .main-content { margin-left: 0; }
+            .table-responsive { box-shadow: none; border: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app-container">
+        
+        <main class="main-content" id="main-content">
+            <div class="content-area">
+                
+                <div class="page-header">
+                    <div>
+                        <h2>Transactions</h2>
+                        <p class="text-muted">Manage your income, expenses, and transfers.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn" style="background: var(--surface-solid); color: var(--text-main); border: 1px solid var(--border-color);" onclick="Transactions.exportCSV()">
+                            <i class="fa-solid fa-download"></i> Export CSV
+                        </button>
+                        <button class="btn" style="background: var(--surface-solid); color: var(--text-main); border: 1px solid var(--border-color);" onclick="window.print()">
+                            <i class="fa-solid fa-print"></i> Print
+                        </button>
+                        <button class="btn btn-primary" onclick="Transactions.openForm()">
+                            <i class="fa-solid fa-plus"></i> Add Transaction
+                        </button>
+                    </div>
+                </div>
+
+                <div class="toolbar">
+                    <div class="search-box">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" class="form-control" id="search-input" placeholder="Search description...">
+                    </div>
+                    <select class="form-control" id="filter-type">
+                        <option value="">All Types</option>
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                        <option value="Transfer">Transfer</option>
+                    </select>
+                    <select class="form-control" id="filter-account">
+                        <option value="">All Accounts</option>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="data-table" id="transactions-table">
+                        <thead>
+                            <tr>
+                                <th data-sort="date">Date <i class="fa-solid fa-sort"></i></th>
+                                <th data-sort="type">Type <i class="fa-solid fa-sort"></i></th>
+                                <th data-sort="category">Category <i class="fa-solid fa-sort"></i></th>
+                                <th data-sort="account">Account <i class="fa-solid fa-sort"></i></th>
+                                <th>Description</th>
+                                <th data-sort="amount">Amount <i class="fa-solid fa-sort"></i></th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                    <div class="pagination" id="pagination-container">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Transaction Form Modal -->
+    <div class="modal" id="transaction-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Transaction</h3>
+                <button class="btn-icon" onclick="Modal.close('transaction-modal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="transaction-form">
+                    <input type="hidden" id="tx-id">
+                    
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label class="form-label">Transaction Type</label>
+                            <select class="form-control" id="tx-type" required>
+                                <option value="Expense">Expense</option>
+                                <option value="Income">Income</option>
+                                <option value="Transfer">Transfer</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-control" id="tx-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Amount</label>
+                            <input type="number" class="form-control" id="tx-amount" step="0.01" min="0" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Account</label>
+                            <select class="form-control" id="tx-account" required>
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Category</label>
+                            <select class="form-control" id="tx-category" required>
+                                <!-- Populated by JS -->
+                            </select>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="form-label">Description</label>
+                            <input type="text" class="form-control" id="tx-description" placeholder="What was this for?" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color);" onclick="Modal.close('transaction-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="Transactions.save()">Save Transaction</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/components/sidebar.js"></script>
+    <script src="assets/components/navbar.js"></script>
+    <script src="assets/components/modal.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/transactions.js"></script>
+</body>
+</html>

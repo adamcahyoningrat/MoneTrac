@@ -1,0 +1,64 @@
+<!-- kpi.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI Metrics - MyFinance</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <style>
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        
+        .kpi-card { padding: 1.5rem; display: flex; flex-direction: column; justify-content: space-between; gap: 1rem; }
+        .kpi-header { display: flex; justify-content: space-between; align-items: center; }
+        .kpi-title { font-size: 1rem; font-weight: 600; color: var(--text-muted); }
+        .kpi-icon { width: 40px; height: 40px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; background: var(--primary-light); color: var(--primary); }
+        
+        .kpi-value { font-size: 2rem; font-weight: 700; color: var(--text-main); }
+        
+        .kpi-footer { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; }
+        .kpi-trend { display: flex; align-items: center; gap: 0.25rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: var(--radius-full); }
+        .kpi-trend.up { background: var(--success-light); color: var(--success); }
+        .kpi-trend.down { background: var(--danger-light); color: var(--danger); }
+        .kpi-trend.neutral { background: var(--border-color); color: var(--text-muted); }
+        
+        .kpi-desc { color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app-container">
+        <main class="main-content" id="main-content">
+            <div class="content-area">
+                
+                <div class="page-header">
+                    <div>
+                        <h2>KPI Metrics</h2>
+                        <p class="text-muted">Month-over-month financial health indicators.</p>
+                    </div>
+                </div>
+
+                <div class="kpi-grid" id="kpi-container">
+                    <!-- Cards will be populated by JS -->
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/components/sidebar.js"></script>
+    <script src="assets/components/navbar.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/kpi.js"></script>
+</body>
+</html>

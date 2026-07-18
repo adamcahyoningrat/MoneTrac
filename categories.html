@@ -1,0 +1,137 @@
+<!-- categories.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories - MyFinance</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="assets/css/theme.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+    <style>
+        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .toolbar { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+        
+        /* Grid Layout for Categories */
+        .items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.5rem; }
+        .item-card { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem; }
+        .item-info { display: flex; align-items: center; gap: 1rem; }
+        .item-icon { width: 48px; height: 48px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: white; }
+        .item-details h4 { margin-bottom: 0.25rem; font-size: 1rem; }
+        .item-details span { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: var(--radius-full); font-weight: 600; }
+        .item-details span.Income { background: var(--success-light); color: var(--success); }
+        .item-details span.Expense { background: var(--danger-light); color: var(--danger); }
+        
+        .action-btns { display: flex; gap: 0.5rem; opacity: 0; transition: var(--transition); }
+        .item-card:hover .action-btns { opacity: 1; }
+        @media (max-width: 768px) { .action-btns { opacity: 1; } }
+        
+        .btn-icon { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.25rem; transition: var(--transition); }
+        .btn-icon:hover { color: var(--primary); }
+        .btn-icon.delete:hover { color: var(--danger); }
+        
+        /* Modal additions */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: var(--transition); backdrop-filter: blur(4px); }
+        .modal.active { opacity: 1; pointer-events: all; }
+        .modal-content { background: var(--surface-solid); width: 100%; max-width: 500px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); transform: translateY(20px); transition: var(--transition); display: flex; flex-direction: column; }
+        .modal.active .modal-content { transform: translateY(0); }
+        .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 1.5rem; }
+        .modal-footer { padding: 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; }
+        
+        .icon-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.5rem; margin-top: 0.5rem; max-height: 150px; overflow-y: auto; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+        .icon-option { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); cursor: pointer; transition: var(--transition); color: var(--text-muted); }
+        .icon-option:hover { background: var(--primary-light); color: var(--primary); }
+        .icon-option.selected { background: var(--primary); color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app-container">
+        <main class="main-content" id="main-content">
+            <div class="content-area">
+                
+                <div class="page-header">
+                    <div>
+                        <h2>Categories</h2>
+                        <p class="text-muted">Manage your income and expense categories.</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="Categories.openForm()">
+                        <i class="fa-solid fa-plus"></i> Add Category
+                    </button>
+                </div>
+
+                <div class="toolbar">
+                    <select class="form-control" id="filter-type" style="max-width: 200px;">
+                        <option value="">All Types</option>
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+                </div>
+
+                <div class="items-grid" id="categories-container">
+                    <!-- Populated by JS -->
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Category Form Modal -->
+    <div class="modal" id="category-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Category</h3>
+                <button class="btn-icon" onclick="Modal.close('category-modal')"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="category-form">
+                    <input type="hidden" id="cat-id">
+                    
+                    <div class="form-group">
+                        <label class="form-label">Category Name</label>
+                        <input type="text" class="form-control" id="cat-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Type</label>
+                        <select class="form-control" id="cat-type" required>
+                            <option value="Expense">Expense</option>
+                            <option value="Income">Income</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Color</label>
+                        <input type="color" class="form-control" id="cat-color" style="height: 50px; padding: 0.25rem;" value="#2563EB" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Select Icon</label>
+                        <input type="hidden" id="cat-icon" value="tag">
+                        <div class="icon-grid" id="icon-selector">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" style="background: var(--bg-color); color: var(--text-main); border: 1px solid var(--border-color);" onclick="Modal.close('category-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="Categories.save()">Save Category</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/utils.js"></script>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/components/sidebar.js"></script>
+    <script src="assets/components/navbar.js"></script>
+    <script src="assets/components/modal.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/categories.js"></script>
+</body>
+</html>

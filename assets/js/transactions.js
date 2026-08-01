@@ -257,7 +257,7 @@ save: () => {
 
         const id = document.getElementById('tx-id').value;
         const type = document.getElementById('tx-type').value;
-        const amount = parseFloat(document.getElementById('tx-amount').value);
+        const amount = Number(document.getElementById('tx-amount').value);
         const accountId = document.getElementById('tx-account').value;
         const toAccountId = document.getElementById('tx-to-account') ? document.getElementById('tx-to-account').value : null;
 
@@ -273,47 +273,18 @@ save: () => {
             timestamp: new Date().toISOString()
         };
 
-        // --- UPDATE SALDO ACCOUNTS ---
-        const accounts = StorageDB.getData(StorageDB.keys.ACCOUNTS);
-
-        // 1. Jika EDIT: Batalkan efek transaksi lama terlebih dahulu
         if (id) {
-            const oldTx = Transactions.data.find(t => t.id === id);
-            if (oldTx) {
-                const oldAcc = accounts.find(a => a.id === oldTx.account);
-                if (oldAcc) {
-                    if (oldTx.type === 'Income') oldAcc.balance -= oldTx.amount;
-                    if (oldTx.type === 'Expense') oldAcc.balance += oldTx.amount;
-                    if (oldTx.type === 'Transfer') {
-                        oldAcc.balance += oldTx.amount;
-                        const oldToAcc = accounts.find(a => a.id === oldTx.toAccount);
-                        if (oldToAcc) oldToAcc.balance -= oldTx.amount;
-                    }
-                }
-            }
+            // Jika Edit Transaksi
             const index = Transactions.data.findIndex(t => t.id === id);
             Transactions.data[index] = newTx;
             Utils.showToast('Transaction updated successfully');
         } else {
-            // Jika BARU
+            // Jika Transaksi Baru
             Transactions.data.push(newTx);
             Utils.showToast('Transaction added successfully');
         }
 
-        // 2. Terapkan efek transaksi baru ke saldo
-        const newAcc = accounts.find(a => a.id === newTx.account);
-        if (newAcc) {
-            if (newTx.type === 'Income') newAcc.balance += newTx.amount;
-            if (newTx.type === 'Expense') newAcc.balance -= newTx.amount;
-            if (newTx.type === 'Transfer') {
-                newAcc.balance -= newTx.amount; // Kurangi dari akun sumber
-                const newToAcc = accounts.find(a => a.id === newTx.toAccount);
-                if (newToAcc) newToAcc.balance += newTx.amount; // Tambah ke akun tujuan
-            }
-        }
-
-        // 3. Simpan Transaksi DAN Akun yang saldonya sudah diperbarui
-        StorageDB.saveData(StorageDB.keys.ACCOUNTS, accounts);
+        // HANYA SIMPAN TRANSAKSI, JANGAN SENTUH ACCOUNTS
         StorageDB.saveData(StorageDB.keys.TRANSACTIONS, Transactions.data);
         
         Transactions.applyFiltersAndRender();
@@ -322,33 +293,15 @@ save: () => {
 
     confirmDelete: (id) => {
         Modal.confirm('Delete Transaction', 'Are you sure you want to delete this transaction?', () => {
-            const txToDelete = Transactions.data.find(t => t.id === id);
-            if (txToDelete) {
-                // Kembalikan saldo akun seperti sebelum ada transaksi ini
-                const accounts = StorageDB.getData(StorageDB.keys.ACCOUNTS);
-                const acc = accounts.find(a => a.id === txToDelete.account);
-                
-                if (acc) {
-                    if (txToDelete.type === 'Income') acc.balance -= txToDelete.amount;
-                    if (txToDelete.type === 'Expense') acc.balance += txToDelete.amount;
-                    if (txToDelete.type === 'Transfer') {
-                        acc.balance += txToDelete.amount;
-                        const toAcc = accounts.find(a => a.id === txToDelete.toAccount);
-                        if (toAcc) toAcc.balance -= txToDelete.amount;
-                    }
-                }
-                
-                // Simpan akun dan hapus transaksi
-                StorageDB.saveData(StorageDB.keys.ACCOUNTS, accounts);
-                Transactions.data = Transactions.data.filter(t => t.id !== id);
-                StorageDB.saveData(StorageDB.keys.TRANSACTIONS, Transactions.data);
-                
-                Transactions.applyFiltersAndRender();
-                Utils.showToast('Transaction deleted', 'success');
-            }
+            // HANYA HAPUS TRANSAKSI, JANGAN SENTUH ACCOUNTS
+            Transactions.data = Transactions.data.filter(t => t.id !== id);
+            StorageDB.saveData(StorageDB.keys.TRANSACTIONS, Transactions.data);
+            
+            Transactions.applyFiltersAndRender();
+            Utils.showToast('Transaction deleted', 'success');
         });
     },
-
+    
     duplicate: (id) => {
         const tx = Transactions.data.find(t => t.id === id);
         if (tx) {

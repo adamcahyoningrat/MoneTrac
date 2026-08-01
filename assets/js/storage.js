@@ -65,17 +65,29 @@ const StorageDB = {
 
     pullFromCloud: async () => {
         try {
-            // CEK PENGAMAN: Jangan timpa jika sudah ada data transaksi di lokal!
-            // Ini mencegah data baru yang belum masuk ke Sheets tertimpa data lama saat refresh.
-            const localTx = localStorage.getItem(StorageDB.keys.TRANSACTIONS);
-            if (localTx && JSON.parse(localTx).length > 0) {
-                return false; 
-            }
-
             const response = await fetch(StorageDB.API_URL);
             const cloudData = await response.json();
             
             if (cloudData && Object.keys(cloudData).length > 0) {
+                // Ambil data lokal dan cloud untuk dibandingkan
+                const localTx = StorageDB.getData(StorageDB.keys.TRANSACTIONS);
+                const cloudTx = cloudData[StorageDB.keys.TRANSACTIONS] || [];
+
+                // 1. KASUS REFRESH CEPAT: Cloud kosong/lambat update, tapi lokal ada isinya.
+                // Jangan ditimpa agar data barumu tidak hilang jadi 0.
+                if (cloudTx.length === 0 && localTx.length > 0) {
+                    return false; 
+                }
+
+                // 2. KASUS INPUT BARU DI HP: Data lokal LEBIH BANYAK dari cloud.
+                // Artinya Google Sheets belum selesai mencatat. Jangan ditarik, tapi paksa kirim ulang!
+                if (localTx.length > cloudTx.length) {
+                    StorageDB.pushToCloud(); 
+                    return false;
+                }
+
+                // 3. KASUS BUKA DI LAPTOP: Data cloud LEBIH BANYAK atau SAMA dengan lokal.
+                // Artinya ada update dari perangkat lain. AMAN UNTUK DITARIK & DITIMPA!
                 for (let key in cloudData) {
                     localStorage.setItem(key, JSON.stringify(cloudData[key]));
                 }
@@ -86,7 +98,6 @@ const StorageDB = {
         }
         return false;
     },
-
     // --- INISIALISASI ---
 
     init: async () => {

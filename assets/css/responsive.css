@@ -1,0 +1,37 @@
+/* assets/css/responsive.css */
+@media (max-width: 1024px) {
+    .content-area {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: 0px; /* Sidebar hidden by default on mobile */
+    }
+    
+    .app-container {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        transform: translateX(-100%);
+        position: fixed;
+        z-index: 50;
+        width: 260px;
+        height: 100vh;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .content-area {
+        padding: 1rem;
+    }
+}
